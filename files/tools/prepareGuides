@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+from_dir=${FROM_DIR:-/data/}
+to_dir=${TO_DIR:-/data/}
+debug="${DEBUG:-FALSE}"
+
+if [ "${from_dir: -1}" != "/" ]; then
+    from_dir="${from_dir}/"
+fi
+if [ "${to_dir: -1}" != "/" ]; then
+    to_dir="${to_dir}/"
+fi
+
+logMessage () {
+    errorC="\033[1;30;41m"
+    warnC="\033[1;90;43m"
+    infoC="\033[1;32;100m"
+    noC="\033[0m"
+    if [ "${debug^^}" == "TRUE" ]; then
+        color="$1C"
+        printf "${!color} ${2} ${noC}\n"
+    fi
+}
+
+[ -d "${from_dir}" ] || mkdir "${from_dir}"
+[ -d "${to_dir}" ]   || mkdir "${to_dir}"
+
+sourcefiles=$( find "${from_dir}" -type f -iname "*.md"  -print )
+cleanfiles=$(  find "${to_dir}"   -type f -iname "*.rst" -print )
+
+if [ ! -z "${cleanfiles}" ]; then
+    logMessage info "Now deleting existing reST files in destination directory ..."
+    for file in ${cleanfiles}; do
+        rm -f "${file}"
+    done
+fi
+
+if [ ! -z "${sourcefiles}" ]; then
+    logMessage warn "Now transforming the MarkDown files into reST files ..."
+    curDir=$( pwd )
+    for file in ${sourcefiles}; do
+        # get the directory path of current file
+        fileDir=$( dirname "${file}" )
+        cd "${fileDir}"
+        # remove the from_dir part from the beginning of the path
+        fileDir="${fileDir:(${#from_dir})}"
+        # ensure the destination directory exists
+        m2r "${file}"
+        if [ "${to_dir}" != "${from_dir}" ]; then
+            mkdir -p "${to_dir}${fileDir}/"
+            rstPath="${file:(${#from_dir}):${#file}-${#from_dir}-3}.rst"
+            mv "${from_dir}${rstPath}" "${to_dir}${rstPath}"
+        fi
+        cd "${curDir}"
+    done
+    logMessage info "Finished transformation ..."
+else
+    logMessage error "No MarkDown files found to process ..."
+fi
