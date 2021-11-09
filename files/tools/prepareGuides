@@ -3,10 +3,12 @@
 from_dir=${FROM_DIR:-/data/}
 to_dir=${TO_DIR:-/data/}
 debug="${DEBUG:-FALSE}"
+buildToc="${TOCED_INDEX:-TRUE}"
 
 if [ "${from_dir: -1}" != "/" ]; then
     from_dir="${from_dir}/"
 fi
+
 if [ "${to_dir: -1}" != "/" ]; then
     to_dir="${to_dir}/"
 fi
@@ -56,4 +58,10 @@ if [ ! -z "${sourcefiles}" ]; then
     logMessage info "Finished transformation ..."
 else
     logMessage error "No MarkDown files found to process ..."
+fi
+
+if [ "${buildToc^^}" == "TRUE" ]; then
+    logMessage warn "Generating index files with tables of contents ..."
+    buildIndexes
+    logMessage info "Done with TOCs ..."
 fi

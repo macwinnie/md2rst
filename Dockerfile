@@ -6,6 +6,8 @@ MAINTAINER Martin Winter
 ENV FROM_DIR="/data"
 ENV TO_DIR="/data"
 ENV DEBUG="false"
+ENV TOCED_INDEX="true"
+ENV TOC_ATTRS="{\"maxdepth\": \"3\", \"hidden\": \"\"}"
 
 COPY files/ /install/
 
